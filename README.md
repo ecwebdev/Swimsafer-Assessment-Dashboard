@@ -1,29 +1,18 @@
 # 🏊 SwimSafer Assessment Dashboard
 
-A live assessment tracking dashboard for SwimSafer NYC, covering **21,815 assessments** across 6 stages and 7 swimming complexes from 25 Jul 2025 to 19 Jul 2026.
+A live assessment tracking dashboard for SwimSafer NYC, covering **All assessments** across 6 stages and 5 swimming complexes from 25 Jul 2025 to 30 Jun 2026.
 
-**[View Live Dashboard →](https://YOUR-USERNAME.github.io/swimsafer-dashboard/)**
+**[View Live Dashboard →](https://ecwebdev.github.io/Swimsafer-Assessment-Dashboard/)**
 
 ---
 
 ## 📊 Dashboard Features
 
-- **Overview** — Pass/Fail breakdown by stage with a detailed summary table
-- **Timeline** — Monthly and weekly trend analysis across all stages
-- **Locations** — Assessment volume by swimming complex
-- **Failure Analysis** — Drill-down into failure reasons per stage
-- **Assessors** — Pass/Fail breakdown by individual assessor
+- **Overview** — Competent/Not Yet Competent breakdown by stage with a detailed summary table
+- **Timeline** — Monthly, Quarterly, Half-Yearly and Yearly trend analysis across all stages
+- **Locations** — Assessments by Location, Split by Stage
+- **NYC Analysis** — Drill-down into NYC reasons per stage
 
-## 📈 Key Stats
-
-| Metric | Value |
-|---|---|
-| Total Assessments | 21,815 |
-| Overall Pass Rate | 80.6% |
-| Total Passed | 17,593 |
-| Total Failed | 4,222 |
-| Locations | 7 swimming complexes |
-| Stages | 6 (Stage 1 → Stage 6 Gold) |
 
 ## 🚀 Deployment
 
@@ -55,4 +44,4 @@ swimsafer-dashboard/
 
 ---
 
-*Dashboard last updated: June 2025*
+*Dashboard last updated: June 2026*
