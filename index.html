@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SwimSafer NYC — Assessment Dashboard</title>
+<title>SwimSafer Assessment Dashboard</title>
 <script src="https://cdn.plot.ly/plotly-2.35.0.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -13,7 +13,7 @@
   --bg:#050a18;--surface:#0c1528;--card:#111d35;--card-hover:#162544;
   --border:#1c3054;--border-light:#264060;
   --text:#e8edf5;--text-muted:#7a8ba8;--text-dim:#4a5d7a;
-  --pass:#00d68f;--pass-bg:rgba(0,214,143,0.1);--pass-border:rgba(0,214,143,0.25);
+  --pass:#00d68f;--pass-bg:rgba(0,214,143,0.1);--passed-border:rgba(0,214,143,0.25);
   --fail:#ff4d6a;--fail-bg:rgba(255,77,106,0.1);--fail-border:rgba(255,77,106,0.25);
   --accent:#4d8eff;--accent-bg:rgba(77,142,255,0.1);
   --purple:#a78bfa;--amber:#fbbf24;--cyan:#22d3ee;--pink:#f472b6;
@@ -97,6 +97,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',system-ui,sans
 .card:hover{border-color:var(--border-light);box-shadow:0 4px 24px rgba(0,0,0,0.2)}
 .card h3{font-size:16px;font-weight:600;margin-bottom:18px;display:flex;align-items:center;gap:8px}
 .card h3 .icon{font-size:18px}
+.custom-legend{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:6px;font-size:12px;color:var(--text-muted)}
+.legend-item{display:flex;align-items:center;gap:6px}
+.legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
 
 /* ─── TABLE ─── */
 table{width:100%;border-collapse:collapse;font-size:13px}
@@ -107,6 +110,8 @@ th{
   position:sticky;top:0;
 }
 td{padding:13px 14px;border-bottom:1px solid var(--border)}
+#stageBreakdownTable th:nth-child(3),#stageBreakdownTable td:nth-child(3){padding-right:26px}
+#stageBreakdownTable th:nth-child(4),#stageBreakdownTable td:nth-child(4){padding-left:12px}
 tr{transition:background 0.15s}
 tr:hover td{background:var(--card-hover)}
 .pass-text{color:var(--pass);font-weight:600}
@@ -155,13 +160,12 @@ tr:hover td{background:var(--card-hover)}
     <div class="hero-title">
       <div class="logo">🏊</div>
       <div>
-        <h1>SwimSafer Pass/Failures</h1>
+        <h1>SwimSafer Assessment Dashboard</h1>
         <div class="period">25 Jul 2025 — 30 Jun 2026</div>
       </div>
     </div>
-    <div class="hero-badge">LIVE ASSESSMENT TRACKER</div>
-  </div>
-</div>
+        </div>
+    </div>
 
 <!-- ═══ KPIs ═══ -->
 <div class="kpi-strip">
@@ -171,19 +175,19 @@ tr:hover td{background:var(--card-hover)}
     <div class="sub">across 6 stages</div>
   </div>
   <div class="kpi">
-    <div class="label">Pass Rate</div>
+    <div class="label">Competent Grade awarded to</div>
     <div class="val mono" style="color:var(--pass)">94.4%</div>
     <div class="sub">of graded assessments</div>
   </div>
   <div class="kpi">
-    <div class="label">Passed</div>
+    <div class="label">Competent</div>
     <div class="val mono" style="color:var(--pass)">22,189</div>
-    <div class="sub">competent</div>
+    <div class="sub">Competent</div>
   </div>
   <div class="kpi">
-    <div class="label">Failed</div>
+    <div class="label">NYC</div>
     <div class="val mono" style="color:var(--fail)">1,320</div>
-    <div class="sub">non-competent</div>
+    <div class="sub">Not Yet Competent</div>
   </div>
   <div class="kpi">
     <div class="label">Ungraded</div>
@@ -199,23 +203,109 @@ tr:hover td{background:var(--card-hover)}
 
 <!-- ═══ NAV ═══ -->
 <div class="nav">
-  <button class="active" onclick="showTab('overview',this)">📊 Overview</button>
+  <button class="active" onclick="showTab('assessment_overview',this)">📊 Overview</button>
+  <button onclick="showTab('overview',this)">📋 Stage Summary</button>
   <button onclick="showTab('timeline',this)">📈 Timeline</button>
-  <button onclick="showTab('locations',this)">📍 Locations</button>
-  <button onclick="showTab('failures',this)">⚠️ Failure Analysis</button>
+  <button onclick="showTab('locations',this)">📍 Location Analysis</button>
+  <button onclick="showTab('failures',this)">⚠️ NYC Analysis</button>
 </div>
 
 <div class="content">
 
-<!-- ═══ OVERVIEW ═══ -->
-<div id="overview" class="panel active">
+<!-- ═══ NEW OVERVIEW (Assessments by Location, Split by Stage) ═══ -->
+<div id="assessment_overview" class="panel active">
+  <div style="font-size:13px;color:var(--text-muted);margin:0 0 14px 2px;">Data recorded: Aug 2025 – Jun 2026 (assessments on or before 30 Jun 2026, 5 main centers)</div>
   <div class="grid-2">
-    <div class="card"><h3><span class="icon">📊</span> Passed / Failed / Ungraded by Stage</h3><div id="c_bar"></div></div>
-    <div class="card"><h3><span class="icon">🎯</span> Pass Rate by Stage</h3><div id="c_rate"></div></div>
+    <div class="card span-full">
+      <h3><span class="icon">🗺️</span> Assessments by Location, Split by Stage</h3>
+      <div class="custom-legend">
+        <span class="legend-item"><span class="legend-dot" style="background:#2a78d6"></span>Stage 1</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#1baf7a"></span>Stage 2</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#eda100"></span>Stage 3</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#008300"></span>Stage 4</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#4a3aa7"></span>Stage 5</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#e34948"></span>Stage 6</span>
+      </div>
+      <div id="c_overview_loc_stage"></div>
+    </div>
+    <div class="card span-full">
+      <h3><span class="icon">📋</span> Location Breakdown by Stage</h3>
+      <table>
+        <thead><tr><th>Location</th><th>Stage 1</th><th>Stage 2</th><th>Stage 3</th><th>Stage 4</th><th>Stage 5</th><th>Stage 6</th><th>Total</th></tr></thead>
+        <tbody>
+          <tr>
+            <td style="font-weight:700">Bedok</td>
+            <td class="mono">1,505</td>
+            <td class="mono">1,706</td>
+            <td class="mono">1,483</td>
+            <td class="mono">1,456</td>
+            <td class="mono">812</td>
+            <td class="mono">756</td>
+            <td class="mono" style="font-weight:700">7,718</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700">Yio Chu Kang</td>
+            <td class="mono">1,565</td>
+            <td class="mono">1,594</td>
+            <td class="mono">1,240</td>
+            <td class="mono">1,111</td>
+            <td class="mono">335</td>
+            <td class="mono">290</td>
+            <td class="mono" style="font-weight:700">6,135</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700">Bukit Batok</td>
+            <td class="mono">857</td>
+            <td class="mono">1,378</td>
+            <td class="mono">966</td>
+            <td class="mono">1,162</td>
+            <td class="mono">713</td>
+            <td class="mono">415</td>
+            <td class="mono" style="font-weight:700">5,491</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700">Yishun</td>
+            <td class="mono">553</td>
+            <td class="mono">704</td>
+            <td class="mono">469</td>
+            <td class="mono">502</td>
+            <td class="mono">253</td>
+            <td class="mono">243</td>
+            <td class="mono" style="font-weight:700">2,724</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700">Jalan Besar</td>
+            <td class="mono">404</td>
+            <td class="mono">416</td>
+            <td class="mono">298</td>
+            <td class="mono">376</td>
+            <td class="mono">265</td>
+            <td class="mono">179</td>
+            <td class="mono" style="font-weight:700">1,938</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ OVERVIEW ═══ -->
+<div id="overview" class="panel">
+  <div class="grid-2">
+    <div class="card">
+      <h3><span class="icon">📊</span> Competent / NYC / Ungraded by Stage</h3>
+      <div class="custom-legend">
+        <span class="legend-item"><span class="legend-dot" style="background:#00d68f"></span>Competent</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#ff4d6a"></span>NYC</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#fbbf24"></span>Ungraded</span>
+      </div>
+      <div id="c_bar"></div>
+    </div>
+    <div class="card"><h3><span class="icon">🎯</span> Competent Grade by Stage</h3><div id="c_rate"></div></div>
     <div class="card span-full">
       <h3><span class="icon">📋</span> Stage Breakdown</h3>
-      <table>
-        <thead><tr><th>Stage</th><th>Total</th><th>Passed</th><th>Failed</th><th>Ungraded</th><th>Pass Rate</th></tr></thead>
+      <table id="stageBreakdownTable">
+        <thead><tr><th>Stage</th><th>Total</th><th>Competent</th><th>NYC</th><th>Ungraded</th><th>Competent Grade Awarded</th></tr></thead>
         <tbody>
           <tr>
             <td style="font-weight:700">Stage 1</td>
@@ -286,72 +376,42 @@ tr:hover td{background:var(--card-hover)}
         </div>
         <span id="tl-filter-desc" style="color:var(--text-muted);font-size:11px;font-family:'JetBrains Mono',monospace;margin-left:4px;opacity:.75;">All months shown</span>
       </div>
+      <div class="custom-legend">
+        <span class="legend-item"><span class="legend-dot" style="background:#00d68f"></span>Competent</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#ff4d6a"></span>NYC</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#fbbf24"></span>Ungraded</span>
+      </div>
       <div id="c_tl_bar"></div>
+    </div>
+    <div class="card span-full">
+      <h3><span class="icon">📋</span> Timeline Breakdown</h3>
+      <table id="timelineBreakdownTable">
+        <thead><tr><th>Period</th><th>Total</th><th>Competent</th><th>NYC</th><th>Ungraded</th><th>Competent Grade Awarded</th></tr></thead>
+        <tbody id="tlBreakdownBody"></tbody>
+      </table>
     </div>
   </div>
 </div>
 
 <!-- ═══ LOCATIONS ═══ -->
 <div id="locations" class="panel">
-  <div style="font-size:13px;color:var(--text-muted);margin:0 0 14px 2px;">Data recorded: Aug 2025 – Jun 2026</div>
+  <div style="font-size:13px;color:var(--text-muted);margin:0 0 14px 2px;">Data recorded: Aug 2025 – Jun 2026 (assessments on or before 30 Jun 2026, 5 main centers)</div>
+  <div class="pills" id="locStagePills"></div>
   <div class="grid-2">
-    <div class="card span-full"><h3><span class="icon">🗺️</span> Assessments by Location, Split by Stage</h3><div id="c_loc_pie"></div></div>
     <div class="card span-full">
-      <h3><span class="icon">📋</span> Location Breakdown by Stage</h3>
+      <h3><span class="icon">🗺️</span> <span id="locChartTitle">Assessments by Location — Stage 1</span></h3>
+      <div class="custom-legend">
+        <span class="legend-item"><span class="legend-dot" style="background:#00d68f"></span>Competent</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#ff4d6a"></span>NYC</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#fbbf24"></span>Ungraded</span>
+      </div>
+      <div id="c_loc_pie"></div>
+    </div>
+    <div class="card span-full">
+      <h3><span class="icon">📋</span> <span id="locTableTitle">Location Breakdown — Stage 1</span></h3>
       <table>
-        <thead><tr><th>Location</th><th>Stage 1</th><th>Stage 2</th><th>Stage 3</th><th>Stage 4</th><th>Stage 5</th><th>Stage 6</th><th>Total</th></tr></thead>
-        <tbody>
-          <tr>
-            <td style="font-weight:700">Bukit Batok</td>
-            <td class="mono">2,471</td>
-            <td class="mono">1,379</td>
-            <td class="mono">942</td>
-            <td class="mono">1,168</td>
-            <td class="mono">807</td>
-            <td class="mono">411</td>
-            <td class="mono" style="font-weight:700">7,178</td>
-          </tr>
-          <tr>
-            <td style="font-weight:700">Bedok</td>
-            <td class="mono">1,306</td>
-            <td class="mono">1,609</td>
-            <td class="mono">1,403</td>
-            <td class="mono">1,378</td>
-            <td class="mono">725</td>
-            <td class="mono">749</td>
-            <td class="mono" style="font-weight:700">7,170</td>
-          </tr>
-          <tr>
-            <td style="font-weight:700">Jalan Besar</td>
-            <td class="mono">395</td>
-            <td class="mono">415</td>
-            <td class="mono">330</td>
-            <td class="mono">377</td>
-            <td class="mono">264</td>
-            <td class="mono">187</td>
-            <td class="mono" style="font-weight:700">1,968</td>
-          </tr>
-          <tr>
-            <td style="font-weight:700">Yio Chu Kang</td>
-            <td class="mono">1,522</td>
-            <td class="mono">1,586</td>
-            <td class="mono">1,229</td>
-            <td class="mono">1,098</td>
-            <td class="mono">328</td>
-            <td class="mono">278</td>
-            <td class="mono" style="font-weight:700">6,041</td>
-          </tr>
-          <tr>
-            <td style="font-weight:700">Yishun</td>
-            <td class="mono">528</td>
-            <td class="mono">678</td>
-            <td class="mono">458</td>
-            <td class="mono">499</td>
-            <td class="mono">285</td>
-            <td class="mono">240</td>
-            <td class="mono" style="font-weight:700">2,688</td>
-          </tr>
-        </tbody>
+        <thead><tr><th>Location</th><th>Competent</th><th>NYC</th><th>Ungraded</th><th>Total</th></tr></thead>
+        <tbody id="locTableBody"></tbody>
       </table>
     </div>
   </div>
@@ -362,11 +422,11 @@ tr:hover td{background:var(--card-hover)}
   <div class="pills" id="stagePills"></div>
   <div class="grid-2">
     <div class="card span-full">
-      <h3><span class="icon">🔬</span> <span id="failChartTitle">Select a stage to view failure reason distribution</span></h3>
+      <h3><span class="icon">🔬</span> <span id="failChartTitle">Select a stage to view NYC reason distribution</span></h3>
       <div id="c_fail_pie" style="min-height:480px;"></div>
     </div>
     <div class="card span-full">
-      <h3><span class="icon">📝</span> Individual Failure Records</h3>
+      <h3><span class="icon">📝</span> Individual NYC Records</h3>
       <div class="scroll-table">
         <table>
           <thead><tr><th>Participant</th><th>Stage</th><th>Reason</th><th>Comments</th></tr></thead>
@@ -4651,16 +4711,16 @@ function showTab(id,btn){
 
 // ═══ OVERVIEW CHARTS ═══
 Plotly.newPlot('c_bar',[
-  {x:["Stage 1", "Stage 2", "Stage 3", "Stage 4 Bronze", "Stage 5 Silver", "Stage 6 Gold"],y:[4515, 5562, 4132, 4358, 1990, 1632],name:'Passed',type:'bar',marker:{color:'#00d68f',line:{width:0}}},
-  {x:["Stage 1", "Stage 2", "Stage 3", "Stage 4 Bronze", "Stage 5 Silver", "Stage 6 Gold"],y:[102, 33, 184, 340, 398, 263],name:'Failed',type:'bar',marker:{color:'#ff4d6a',line:{width:0}}},
+  {x:["Stage 1", "Stage 2", "Stage 3", "Stage 4 Bronze", "Stage 5 Silver", "Stage 6 Gold"],y:[4515, 5562, 4132, 4358, 1990, 1632],name:'Competent',type:'bar',marker:{color:'#00d68f',line:{width:0}}},
+  {x:["Stage 1", "Stage 2", "Stage 3", "Stage 4 Bronze", "Stage 5 Silver", "Stage 6 Gold"],y:[102, 33, 184, 340, 398, 263],name:'NYC',type:'bar',marker:{color:'#ff4d6a',line:{width:0}}},
   {x:["Stage 1", "Stage 2", "Stage 3", "Stage 4 Bronze", "Stage 5 Silver", "Stage 6 Gold"],y:[259, 206, 188, 235, 175, 117],name:'Ungraded',type:'bar',marker:{color:'#fbbf24',line:{width:0}}},
-],{...L,barmode:'group',bargap:0.3,height:340},CFG);
+],{...L,barmode:'group',bargap:0.3,height:340,showlegend:false},CFG);
 
 Plotly.newPlot('c_rate',[{
   x:["Stage 1", "Stage 2", "Stage 3", "Stage 4 Bronze", "Stage 5 Silver", "Stage 6 Gold"],y:[97.8, 99.4, 95.7, 92.8, 83.3, 86.1],type:'bar',
   marker:{color:[97.8, 99.4, 95.7, 92.8, 83.3, 86.1].map(v=>v>=80?'#00d68f':v>=70?'#fbbf24':'#ff4d6a'),line:{width:0}},
   text:[97.8, 99.4, 95.7, 92.8, 83.3, 86.1].map(v=>v+'%'),textposition:'outside',textfont:{color:'#e8edf5',size:13,family:'JetBrains Mono'},
-}],{...L,height:340,yaxis:{...L.yaxis,range:[0,100],ticksuffix:'%'},showlegend:false},CFG);
+}],{...L,height:300,yaxis:{...L.yaxis,range:[0,100],ticksuffix:'%'},showlegend:false},CFG);
 
 // ═══ TIMELINE CHARTS ═══
 // Raw monthly data (Jul 2025 – Jun 2026)
@@ -4702,9 +4762,16 @@ const H_DEFS = {
   "H1 2026": [6,7,8,9,10,11],
 };
 
+const TL_MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function formatMonthLabel(ym){
+  var parts = ym.split('-');
+  var mi = parseInt(parts[1],10) - 1;
+  return TL_MONTH_NAMES[mi] + ' ' + parts[0];
+}
+
 function buildTlBuckets(mode){
   if(mode==='monthly'){
-    return TL_MONTHS.map((m,i)=>({label:m, indices:[i]}));
+    return TL_MONTHS.map((m,i)=>({label:formatMonthLabel(m), indices:[i]}));
   }
   if(mode==='q_yoy'){
     const all = [];
@@ -4722,7 +4789,7 @@ function buildTlBuckets(mode){
       {label:'2026 (Jan–Jun)', indices:[6,7,8,9,10,11]},
     ];
   }
-  return TL_MONTHS.map((m,i)=>({label:m,indices:[i]}));
+  return TL_MONTHS.map((m,i)=>({label:formatMonthLabel(m),indices:[i]}));
 }
 
 const TL_DESCRIPTIONS = {
@@ -4758,16 +4825,16 @@ function renderTlBar(mode){
   var isGrouped = (mode==='q_yoy'||mode==='h_yoy'||mode==='yearly');
 
   var traces = [
-    {x:labels, y:passed, name:'Passed', type:'bar',
+    {x:labels, y:passed, name:'Competent', type:'bar',
      marker:{color:passColors},
      text:passed.map(function(v){return v?v.toLocaleString():'';}), textposition:'inside',
      textfont:{color:'#fff',size:11,family:'JetBrains Mono'},
-     hovertemplate:'<b>%{x}</b><br>Passed: %{y:,}<extra></extra>'},
-    {x:labels, y:failed, name:'Failed', type:'bar',
+     hovertemplate:'<b>%{x}</b><br>Competent: %{y:,}<extra></extra>'},
+    {x:labels, y:failed, name:'NYC', type:'bar',
      marker:{color:failColors},
      text:failed.map(function(v){return v?v.toLocaleString():'';}), textposition:'inside',
      textfont:{color:'#fff',size:11,family:'JetBrains Mono'},
-     hovertemplate:'<b>%{x}</b><br>Failed: %{y:,}<extra></extra>'},
+     hovertemplate:'<b>%{x}</b><br>NYC: %{y:,}<extra></extra>'},
     {x:labels, y:ungraded, name:'Ungraded', type:'bar',
      marker:{color:ungradedColors},
      text:ungraded.map(function(v){return v?v.toLocaleString():'';}), textposition:'inside',
@@ -4792,7 +4859,7 @@ function renderTlBar(mode){
     yaxis:{gridcolor:'#1c3054',linecolor:'#1c3054'},
     hoverlabel:{bgcolor:'#111d35',bordercolor:'#1c3054',font:{family:'DM Sans',color:'#e8edf5'}},
     barmode:'stack', height:360,
-    legend:{orientation:'h',x:0,y:1.06,font:{color:'#e8edf5',size:12}},
+    showlegend:false,
     annotations: annotations,
   };
 
@@ -4802,6 +4869,21 @@ function renderTlBar(mode){
   } else {
     Plotly.react('c_tl_bar', traces, layout, CFG);
   }
+
+  var body = document.getElementById('tlBreakdownBody');
+  body.innerHTML = data.map(function(d){
+    var graded = d.passed + d.failed;
+    var pct = graded > 0 ? (d.passed / graded * 100) : 0;
+    var pctStr = pct.toFixed(1) + '%';
+    return '<tr>' +
+      '<td style="font-weight:700">'+d.label+'</td>' +
+      '<td class="mono">'+d.total.toLocaleString()+'</td>' +
+      '<td class="pass-text mono">'+d.passed.toLocaleString()+'</td>' +
+      '<td class="fail-text mono">'+d.failed.toLocaleString()+'</td>' +
+      '<td class="mono" style="color:var(--amber)">'+d.ungraded.toLocaleString()+'</td>' +
+      '<td><span class="prog"><span class="prog-bar"><span class="prog-fill" style="width:'+pctStr+';background:var(--pass)"></span></span><span class="pass-text mono">'+pctStr+'</span></span></td>' +
+    '</tr>';
+  }).join('');
 }
 
 // Initial render
@@ -4829,21 +4911,86 @@ function setTlFilter(mode, btn){
   renderTlBar(mode);
 }
 
-// ═══ LOCATION CHART ═══
-Plotly.newPlot('c_loc_pie',[
-  {y:["Jalan Besar", "Yishun", "Yio Chu Kang", "Bedok", "Bukit Batok"],x:[395, 528, 1522, 1306, 2471],name:'Stage 1',type:'bar',orientation:'h',marker:{color:'#2a78d6'}},
-  {y:["Jalan Besar", "Yishun", "Yio Chu Kang", "Bedok", "Bukit Batok"],x:[415, 678, 1586, 1609, 1379],name:'Stage 2',type:'bar',orientation:'h',marker:{color:'#1baf7a'}},
-  {y:["Jalan Besar", "Yishun", "Yio Chu Kang", "Bedok", "Bukit Batok"],x:[330, 458, 1229, 1403, 942],name:'Stage 3',type:'bar',orientation:'h',marker:{color:'#eda100'}},
-  {y:["Jalan Besar", "Yishun", "Yio Chu Kang", "Bedok", "Bukit Batok"],x:[377, 499, 1098, 1378, 1168],name:'Stage 4',type:'bar',orientation:'h',marker:{color:'#008300'}},
-  {y:["Jalan Besar", "Yishun", "Yio Chu Kang", "Bedok", "Bukit Batok"],x:[264, 285, 328, 725, 807],name:'Stage 5',type:'bar',orientation:'h',marker:{color:'#4a3aa7'}},
-  {y:["Jalan Besar", "Yishun", "Yio Chu Kang", "Bedok", "Bukit Batok"],x:[187, 240, 278, 749, 411],name:'Stage 6',type:'bar',orientation:'h',marker:{color:'#e34948'}},
+// ═══ NEW OVERVIEW CHART (Assessments by Location, Split by Stage — totals only) ═══
+Plotly.newPlot('c_overview_loc_stage',[
+  {y:["Jalan Besar", "Yishun", "Yio Chu Kang", "Bedok", "Bukit Batok"],x:[404, 553, 1565, 1505, 857],name:'Stage 1',type:'bar',orientation:'h',marker:{color:'#2a78d6'}},
+  {y:["Jalan Besar", "Yishun", "Yio Chu Kang", "Bedok", "Bukit Batok"],x:[416, 704, 1594, 1706, 1378],name:'Stage 2',type:'bar',orientation:'h',marker:{color:'#1baf7a'}},
+  {y:["Jalan Besar", "Yishun", "Yio Chu Kang", "Bedok", "Bukit Batok"],x:[298, 469, 1240, 1483, 966],name:'Stage 3',type:'bar',orientation:'h',marker:{color:'#eda100'}},
+  {y:["Jalan Besar", "Yishun", "Yio Chu Kang", "Bedok", "Bukit Batok"],x:[376, 502, 1111, 1456, 1162],name:'Stage 4',type:'bar',orientation:'h',marker:{color:'#008300'}},
+  {y:["Jalan Besar", "Yishun", "Yio Chu Kang", "Bedok", "Bukit Batok"],x:[265, 253, 335, 812, 713],name:'Stage 5',type:'bar',orientation:'h',marker:{color:'#4a3aa7'}},
+  {y:["Jalan Besar", "Yishun", "Yio Chu Kang", "Bedok", "Bukit Batok"],x:[179, 243, 290, 756, 415],name:'Stage 6',type:'bar',orientation:'h',marker:{color:'#e34948'}},
 ],{
   ...L,barmode:'stack',height:380,
   xaxis:{...L.xaxis,type:'linear'},
   yaxis:{...L.yaxis,type:'category'},
   margin:{...L.margin,l:130},
-  legend:{orientation:'h',x:0,y:1.08,traceorder:'normal',font:{color:'#e8edf5',size:12}},
+  showlegend:false,
 },CFG);
+
+// ═══ LOCATION CHART (stage-filterable, Competent/NYC/Ungraded, ≤30 Jun 2026, 5 main centers) ═══
+// Fixed display order (ascending) so the horizontal bar chart is stable across stages
+var LOC_ORDER = ["Jalan Besar", "Yishun", "Bukit Batok", "Yio Chu Kang", "Bedok"];
+var LOC_STAGE_DATA = {
+  1: {competent:[376, 517, 717, 1487, 1341], nyc:[4, 4, 69, 9, 53],   ungraded:[24, 32, 71, 69, 111]},
+  2: {competent:[390, 663, 1328, 1510, 1589], nyc:[4, 3, 3, 8, 24],   ungraded:[22, 38, 47, 76, 93]},
+  3: {competent:[284, 409, 882, 1152, 1321], nyc:[8, 35, 44, 49, 81],  ungraded:[6, 25, 40, 39, 81]},
+  4: {competent:[335, 426, 1016, 994, 1257], nyc:[30, 46, 106, 67, 123], ungraded:[11, 30, 40, 50, 76]},
+  5: {competent:[219, 186, 520, 269, 604],   nyc:[28, 55, 157, 47, 148], ungraded:[18, 12, 36, 19, 60]},
+  6: {competent:[162, 179, 318, 264, 573],   nyc:[9, 52, 77, 17, 140],  ungraded:[8, 12, 20, 9, 43]},
+};
+
+function renderLocStage(stage){
+  var d = LOC_STAGE_DATA[stage];
+
+  Plotly.newPlot('c_loc_pie',[
+    {y:LOC_ORDER, x:d.competent, name:'Competent', type:'bar', orientation:'h', marker:{color:'#00d68f'},
+     hovertemplate:'<b>%{y}</b><br>Competent: %{x:,}<extra></extra>'},
+    {y:LOC_ORDER, x:d.nyc, name:'NYC', type:'bar', orientation:'h', marker:{color:'#ff4d6a'},
+     hovertemplate:'<b>%{y}</b><br>NYC: %{x:,}<extra></extra>'},
+    {y:LOC_ORDER, x:d.ungraded, name:'Ungraded', type:'bar', orientation:'h', marker:{color:'#fbbf24'},
+     hovertemplate:'<b>%{y}</b><br>Ungraded: %{x:,}<extra></extra>'},
+  ],{
+    ...L, barmode:'stack', height:340,
+    xaxis:{...L.xaxis,type:'linear'},
+    yaxis:{...L.yaxis,type:'category'},
+    margin:{...L.margin,l:130},
+    showlegend:false,
+  },CFG);
+
+  document.getElementById('locChartTitle').textContent = 'Assessments by Location — Stage ' + stage;
+  document.getElementById('locTableTitle').textContent  = 'Location Breakdown — Stage ' + stage;
+
+  var rows = LOC_ORDER.map(function(loc,i){
+    return {loc:loc, competent:d.competent[i], nyc:d.nyc[i], ungraded:d.ungraded[i], total:d.competent[i]+d.nyc[i]+d.ungraded[i]};
+  }).sort(function(a,b){ return b.total - a.total; });
+
+  var body = document.getElementById('locTableBody');
+  body.innerHTML = rows.map(function(r){
+    return '<tr><td style="font-weight:700">'+r.loc+'</td>'+
+      '<td class="mono">'+r.competent.toLocaleString()+'</td>'+
+      '<td class="mono">'+r.nyc.toLocaleString()+'</td>'+
+      '<td class="mono">'+r.ungraded.toLocaleString()+'</td>'+
+      '<td class="mono" style="font-weight:700">'+r.total.toLocaleString()+'</td></tr>';
+  }).join('');
+}
+
+(function(){
+  var pillBox = document.getElementById('locStagePills');
+  for(var s = 1; s <= 6; s++){
+    (function(stageNum){
+      var btn = document.createElement('button');
+      btn.className = 'pill' + (stageNum===1 ? ' active' : '');
+      btn.textContent = 'Stage ' + stageNum;
+      btn.onclick = function(){
+        document.querySelectorAll('#locStagePills .pill').forEach(function(b){ b.classList.remove('active'); });
+        btn.classList.add('active');
+        renderLocStage(stageNum);
+      };
+      pillBox.appendChild(btn);
+    })(s);
+  }
+  renderLocStage(1);
+})();
 
 // ═══ FAILURE ANALYSIS ═══
 var FD = {"1": [{"reason": "Back float for 5 seconds and recover", "count": 41}, {"reason": "Correctly fit a PFD (assistance allowed), jump into water", "count": 14}, {"reason": "Enter the water with slide-in entry", "count": 6}, {"reason": "Exit safely from pool/water using the pool edge", "count": 8}, {"reason": "Float for 30 seconds, and then climb out of the water using the ladder", "count": 13}, {"reason": "Float on back, signal distress and call for help (w/o goggles)", "count": 39}, {"reason": "Front float for 5 seconds and recover", "count": 25}, {"reason": "Grasp a/the float and float for 10 seconds (w/o goggles)", "count": 19}, {"reason": "Jump in with PFD, float 30s, climb out using ladder (dressed, w/o goggles)", "count": 2}, {"reason": "Move (with the float) to the pool edge (w/o goggles)", "count": 16}, {"reason": "Submerge head in water, open eyes, blow bubbles and identify object on pool floor (w/o goggles)", "count": 25}, {"reason": "Swim 10m (alternating arms & legs, simultaneous arms & legs, or simultaneous arms & alternating legs)", "count": 114}, {"reason": "Swim on the back 5m (alternating arms & legs, simultaneous arms & legs, or simultaneous arms & alternating legs)", "count": 97}], "2": [{"reason": "Back float for 10 seconds", "count": 14}, {"reason": "Correctly fit a PFD and jump into the water (≥1.4m), swim 25m with PFD, then climb out", "count": 7}, {"reason": "Front float for 10 secs & recover", "count": 11}, {"reason": "Recover an object (in chest deep water), resurface and exit safely from pool", "count": 4}, {"reason": "Scull, float or tread water for 30 sec", "count": 12}, {"reason": "Step-in entry (w/o goggles)", "count": 1}, {"reason": "Swim 15m on the back (alternating arms and legs or simultaneous arms and legs)", "count": 17}, {"reason": "Swim 15m using any survival stroke and exit safely from the pool", "count": 19}, {"reason": "Swim 25m on the front (alternating arms and legs or simultaneous arms and legs)", "count": 23}, {"reason": "Swim 5m on back", "count": 5}, {"reason": "Swim 5m on front and rollover", "count": 5}], "3": [{"reason": "25m Backstroke", "count": 6}, {"reason": "25m Breaststroke", "count": 32}, {"reason": "25m Front Crawl", "count": 15}, {"reason": "Correctly fit a PFD in water, swim 50m with PFD, then climb out of the water", "count": 35}, {"reason": "In 1.2m deep water, swim through hoops on pool bottom for 2m, resurface and exit pool safely", "count": 162}, {"reason": "Scull head-first on the back for 5m and recover", "count": 27}, {"reason": "Scull, float or tread for 50 sec", "count": 14}, {"reason": "Stride/straddle entry", "count": 75}, {"reason": "Swim 25m Survival Backstroke", "count": 12}, {"reason": "Swim 25m using survival backstroke or breaststroke to a PFD", "count": 23}, {"reason": "Swim 50m continuously: 25m front crawl, and 25m backstroke", "count": 20}, {"reason": "Swim 50m continuously: 25m survival backstroke and 25m breaststroke (w/o goggles)", "count": 49}], "4": [{"reason": "25m Backstroke", "count": 31}, {"reason": "25m Breaststroke", "count": 76}, {"reason": "25m Front Crawl", "count": 50}, {"reason": "25m Survival Backstroke", "count": 32}, {"reason": "3 min swimming slowly using survival backstroke, sidestroke and survival breaststroke changing every 15m", "count": 181}, {"reason": "Compact jump entry (in deep water)", "count": 28}, {"reason": "Forward somersault", "count": 153}, {"reason": "In 1.4m deep water, perform feet-first surface dive", "count": 114}, {"reason": "Scull, Float or Tread water for 2 min", "count": 21}, {"reason": "Swim 100m continuously: 25m Front Crawl, 25m Backstroke, 25m Breaststroke and 25m Survival Backstroke", "count": 54}, {"reason": "Swim through hoops on pool bottom for 2m, resurface and exit safely from pool", "count": 144}, {"reason": "Swim to a flotation aid and kick to pool’s edge, then climb out of water", "count": 21}, {"reason": "Throw a flotation aid to a partner 2m away", "count": 20}, {"reason": "Wave and call for help", "count": 22}], "5": [{"reason": "25m Sidestroke", "count": 145}, {"reason": "25m Survival Backstroke", "count": 78}, {"reason": "50m Backstroke (≤1:40 min)", "count": 174}, {"reason": "50m Breaststroke (≤1:50 min)", "count": 138}, {"reason": "50m Front Crawl (≤1:30 min)", "count": 120}, {"reason": "Backward somersault", "count": 83}, {"reason": "Crouching Dive Entry", "count": 45}, {"reason": "Demonstrate Heat Escape Lessening Posture (H.E.L.P) technique for 30 secs", "count": 24}, {"reason": "Dolphin kick 10m on front", "count": 16}, {"reason": "Feet first surface dive to depth of at least 1.8m (and perform ear equalisation, if necessary)", "count": 108}, {"reason": "Retrieve a PFD in water and fit it while treading water", "count": 25}, {"reason": "Stride/Straddle jump entry", "count": 46}, {"reason": "Swim through hoops on pool bottom for 3m and resurface", "count": 185}, {"reason": "Swim 45m quickly using front crawl", "count": 33}, {"reason": "Then swim 25m with PFD and climb out of the water", "count": 21}, {"reason": "Throw a PFD to a partner 3m away", "count": 26}, {"reason": "Wave and call for help", "count": 21}], "6": [{"reason": "100m Backstroke (≤3:20 min)", "count": 183}, {"reason": "100m Breaststroke (≤4:00 min)", "count": 84}, {"reason": "100m Front Crawl (≤3:00 min)", "count": 90}, {"reason": "15m Butterfly", "count": 31}, {"reason": "50m Sidestroke", "count": 104}, {"reason": "50m Survival Backstroke", "count": 67}, {"reason": "Compact jump entry in deep water", "count": 15}, {"reason": "Demonstrate H.E.L.P. technique with the self-made float for 1 min", "count": 41}, {"reason": "Head-first surface dive to a depth of at least 1.8m (and perform ear equalisation, if necessary)", "count": 53}, {"reason": "Remove pants in deep water and make a float with it while treading water within 5 min", "count": 54}, {"reason": "Swim through hoops on pool bottom for 5m and resurface", "count": 118}, {"reason": "Swim 25m with the self-made float and climb out of the water", "count": 37}, {"reason": "Swim 45m quickly using front crawl", "count": 22}, {"reason": "Swim 50m using any preferred survival swim stroke", "count": 23}, {"reason": "Standing Dive Entry", "count": 67}]};
@@ -4906,7 +5053,7 @@ function showFailStage(stage, btn){
   var total   = counts.reduce(function(s,v){ return s+v; }, 0);
 
   document.getElementById('failChartTitle').textContent =
-    'Stage ' + stage + ' — Failure Reason Distribution (' + total + ' failure records)';
+    'Stage ' + stage + ' — NYC Reason Distribution (' + total + ' NYC records)';
 
   // Build hover text showing count + percent
   var hoverText = sorted.map(function(d, i){
@@ -4966,6 +5113,20 @@ function showFailStage(stage, btn){
 }
 
 // Stage 1 is selected automatically when the Failures tab is first opened (handled in showTab)
+
+// Plotly measures legend/label text width using whatever font is available
+// at draw time. If the custom webfonts (DM Sans / JetBrains Mono) haven't
+// finished loading yet, that measurement is taken against a narrower
+// fallback font, so once the real font swaps in, the last character or two
+// of longer labels (e.g. "Competent") can get clipped by the box Plotly
+// already computed. Forcing a resize once fonts are confirmed loaded fixes it.
+if(document.fonts && document.fonts.ready){
+  document.fonts.ready.then(function(){
+    document.querySelectorAll('.js-plotly-plot').forEach(function(gd){
+      try{ Plotly.Plots.resize(gd); }catch(e){}
+    });
+  });
+}
 </script>
 </body>
 </html>
