@@ -11,3 +11,6 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.bak
+
+# Streamlit secrets - never commit
+.streamlit/secrets.toml
