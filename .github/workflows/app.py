@@ -3,6 +3,18 @@ import streamlit.components.v1 as components
 
 st.set_page_config(layout="wide")
 
+st.markdown("""
+    <style>
+        .block-container {
+            padding-left: 0rem;
+            padding-right: 0rem;
+            paddign-top: 1rem;
+            padding-bottom: 0rem;
+            max-width: 100%;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 def check_password():
     def password_entered():
         if st.session_state["password"] == st.secrets["dashboard_password"]:
