@@ -403,21 +403,6 @@ tr:hover td{background:var(--card-hover)}
       <h3><span class="icon">🔬</span> <span id="failChartTitle">Select a stage to view NYC reason distribution</span></h3>
       <div id="c_fail_pie" style="min-height:480px;"></div>
     </div>
-    <div class="card span-full">
-      <h3 style="cursor:pointer; user-select:none;" onclick="toggleNycRecords(this)">
-        <span class="icon">📝</span> Individual NYC Records
-        <span id="nycRecordsToggleIcon" style="float:right; font-size:0.8em; color:#7a8ba8;">▶ Show</span>
-      </h3>
-      <div id="nycRecordsWrapper" style="display:none;">
-        <div class="scroll-table">
-          <table>
-            <thead><tr><th>Participant</th><th>Stage</th><th>Location</th><th>Reason</th><th>Date</th></tr></thead>
-            <tbody id="failTableBody">
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -454,17 +439,10 @@ function showTab(id,btn){
       } else {
         showFailStage(currentFailStage, activePill);
       }
+    } else if(id==='Locations'){
+      renderLocStage(currentLocStage);
     }
   }, 80);
-}
-
-// ─── NYC RECORDS TOGGLE ───
-function toggleNycRecords(headerEl){
-  var wrapper = document.getElementById('nycRecordsWrapper');
-  var icon = document.getElementById('nycRecordsToggleIcon');
-  var isHidden = wrapper.style.display === 'none';
-  wrapper.style.display = isHidden ? '' : 'none';
-  icon.textContent = isHidden ? '▼ Hide' : '▶ Show';
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -711,10 +689,10 @@ function renderOverviewTab(){
     traces.push({y:currentLocations(), x:x, name:'Stage '+sn, type:'bar', orientation:'h', marker:{color:STAGE_COLORS[sn]}});
   }
   const layout = {
-    ...L, barmode:'stack', height:380,
+    ...L, barmode:'stack', height: Math.max(380, currentLocations().length * 24),
     xaxis:{...L.xaxis, type:'linear'},
-    yaxis:{...L.yaxis, type:'category'},
-    margin:{...L.margin, l:130},
+    yaxis:{...L.yaxis, type:'category', automargin:true},
+    margin:{...L.margin, l:20},
     showlegend:false,
   };
   if(!overviewChartInitialized){
@@ -1010,10 +988,10 @@ function renderLocStage(stage){
     {y:currentLocations(), x:ungraded, name:'Ungraded', type:'bar', orientation:'h', marker:{color:'#fbbf24'},
      hovertemplate:'<b>%{y}</b><br>Ungraded: %{x:,}<extra></extra>'},
   ],{
-    ...L, barmode:'stack', height:340,
+    ...L, barmode:'stack', height:Math.max(340, currentLocations().length * 24),
     xaxis:{...L.xaxis,type:'linear'},
-    yaxis:{...L.yaxis,type:'category'},
-    margin:{...L.margin,l:130},
+    yaxis:{...L.yaxis,type:'category', automargin:true},
+    margin:{...L.margin,l:20},
     showlegend:false,
   },CFG);
 
@@ -1147,18 +1125,8 @@ function showFailStage(stage, btn){
   } else {
     Plotly.react('c_fail_pie', [pieTrace], pieLayout, CFG);
   }
-
-  renderFailTable(stage);
 }
 
-function renderFailTable(stage){
-  const months = new Set(monthsInRange());
-  const rows = NYC_RECORDS.filter(r => r.s === stage && months.has(r.m) && recordMatchesFilter(r));
-  const body = document.getElementById('failTableBody');
-  body.innerHTML = rows.map(r =>
-    '<tr><td>'+r.n+'</td><td>Stage '+r.s+'</td><td>'+r.l+'</td><td>'+r.r+'</td><td class="mono">'+r.d+'</td></tr>'
-  ).join('');
-}
 
 // ══════════════════════════════════════════════════════════════════
 // INITIAL RENDER (All Time)
@@ -1174,10 +1142,18 @@ renderTlBar('monthly');
 
 if(document.fonts && document.fonts.ready){
   document.fonts.ready.then(function(){
-    document.querySelectorAll('.js-plotly-plot').forEach(function(gd){
-      try{ Plotly.Plots.resize(gd); }catch(e){}
-    });
-  });
+    setTimeout(function(){
+      ['c_overview_loc_stage','c_loc_pie'].forEach(function(id){
+        const gd = document.getElementById(id);
+        if(gd && gd.data){
+          Plotly.purge(gd);
+        }
+      });
+    overviewChartInitialized = false;
+    renderOverviewTab();
+    renderLocStage(currentLocStage);
+    }, 200);
+});
 }
 </script>
 </body>
