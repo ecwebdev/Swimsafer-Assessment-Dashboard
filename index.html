@@ -304,11 +304,13 @@ tr:hover td{background:var(--card-hover)}
     </div>
     <div class="card span-full">
       <h3><span class="icon">📋</span> School Breakdown by Stage</h3>
+      <div class="scroll-table">
       <table>
         <thead><tr><th>School</th><th>Stage 1</th><th>Stage 2</th><th>Stage 3</th><th>Stage 4</th><th>Stage 5</th><th>Stage 6</th><th>Total</th></tr></thead>
         <tbody id="overviewTableBody">
         </tbody>
       </table>
+    </div>
     </div>
   </div>
 </div>
@@ -387,10 +389,12 @@ tr:hover td{background:var(--card-hover)}
     </div>
     <div class="card span-full">
       <h3><span class="icon">📋</span> <span id="locTableTitle">School Breakdown — Stage 1</span></h3>
-      <table>
-        <thead><tr><th>School</th><th>Competent</th><th>NYC</th><th>Ungraded</th><th>Total</th></tr></thead>
-        <tbody id="locTableBody"></tbody>
-      </table>
+      <div class="scroll-table">
+        <table>
+          <thead><tr><th>School</th><th>Competent</th><th>NYC</th><th>Ungraded</th><th>Total</th></tr></thead>
+          <tbody id="locTableBody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
